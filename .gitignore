@@ -8,6 +8,7 @@
 /.bundle
 
 # Ignore idea folder
+/.idea/workspace.xml
 /.idea/*
 atlassian-ide-plugin.xml
 

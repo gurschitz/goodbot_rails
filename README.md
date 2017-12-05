@@ -4,7 +4,7 @@ This is one of the example applications for my bachelor thesis.
 
 #### Ruby version
 
-The ruby version used is `2.4.1 - make sure that you install it before running this project. 
+The ruby version used is `2.4.1` - make sure that you install it before running this project. 
 Check https://www.ruby-lang.org/en/documentation/installation/ for more information.
 
 Please also make sure that bundler gem is installed. 
