@@ -9,6 +9,7 @@
 
 # Ignore idea folder
 /.idea/*
+atlassian-ide-plugin.xml
 
 # Ignore the default SQLite database.
 /db/*.sqlite3
