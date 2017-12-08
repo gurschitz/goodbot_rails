@@ -4,7 +4,7 @@ module Goodbot
     ##
     # This class defines the structure of a generic element.
 
-    class GenericElement
+    class GenericTemplateElement
 
       attr_reader :title, :image_url, :subtitle, :buttons
 

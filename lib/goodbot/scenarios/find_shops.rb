@@ -48,7 +48,7 @@ module Goodbot
           )
 
           # We build a Generic Element by passing all the data, including the button from above as an array
-          Templates::GenericElement.new(
+          Templates::GenericTemplateElement.new(
             title: shop.dig('name'),
             image_url: shop.dig('logo_url', 'url'),
             subtitle: shop.dig('discount_en'),
@@ -57,10 +57,13 @@ module Goodbot
         end
 
         # We putting the generic elements from above inside a generic template
-        message = Templates::GenericTemplate.new(elements: generic_elements)
+        payload = Templates::GenericTemplate.new(elements: generic_elements)
 
-        # Using our Facebook Messages API Wrapper, we send the message to the set psid
-        Apis::Facebook::Messages.send(psid, message: message)
+        # The generic template needs to be put inside an attachment of type template
+        attachment = Templates::Attachment.new(type: 'template', payload: payload)
+
+        # Using our Facebook Messages API Wrapper, we send the message including the attachment to the set psid
+        Apis::Facebook::Messages.send(psid, message: {attachment: attachment})
       end
     end
   end

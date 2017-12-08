@@ -10,8 +10,8 @@ module Api
 
     # We need to disable protect_from_forgery procedure for handle_message_connection action.
     # Otherwise the POST request from Facebook would not work.
-    protect_from_forgery except: :handle_message_connection
-    before_action :verify_sha_1, only: [:handle_message_connection]
+    protect_from_forgery except: :handle_event
+    before_action :validate_request, only: [:handle_event]
 
     ##
     # The action that will be called when facebook tries to verify the webhook
@@ -24,9 +24,7 @@ module Api
 
     ##
     # This action will be called when a new message connection comes in from facebook
-    def handle_message_connection
-
-      puts params.to_json
+    def handle_event
 
       begin
         handle_entries if object_page?
@@ -41,10 +39,12 @@ module Api
     private
 
     ##
-    # In this method, we're extracting the entry field and handling each entry inside of it.
+    # This method extracts the entry field and handles each entry that is inside.
     def handle_entries
       entries = params.dig('entry') || []
 
+      # Iterating over the entries, as there might be more,
+      # since Facebook eventually does batch requests.
       entries.each do |entry|
         handle_entry entry
       end
@@ -58,8 +58,6 @@ module Api
       messaging_array = entry.dig('messaging') || []
       event = messaging_array.first
 
-      # We using the HandleEventJob to handle the event asynchronously
-      # since we expect that event handling might run some long running task before answering
       HandleEventJob.perform_later(event.permit!.to_h) unless event.blank?
     end
 
@@ -71,7 +69,8 @@ module Api
     end
 
     ##
-    # Helper method that checks if the verify token in the params equals the one set in the secrets config
+    # Helper method that checks if the verify token in the params equals
+    # the one set in the secrets config
     def token_verified?
       params['hub.verify_token'] == Rails.application.secrets.facebook_verify_token
     end
@@ -95,19 +94,21 @@ module Api
     end
 
     ##
-    # Helper method to verify the 'X-Hub-Signature' header passed by facebook
+    # Helper method to validate the request and
+    # compare it to the 'X-Hub-Signature' header passed by facebook.
     # See https://developers.facebook.com/docs/messenger-platform/webhook#security
-    def verify_sha_1
+    def validate_request
       prefix = 'sha1='
       passed_signature = request.headers['X-Hub-Signature']
       secret = Rails.application.secrets.facebook_app_secret
-      body = request.body.read
+      body = request.raw_post
 
-      # Using the OpenSSL::HMAC module we can calculate the sha1 hash of the body using the facebook app secret
+      # Using the OpenSSL::HMAC module the sha1 hash of
+      # the body using the facebook app secret can be calculated
       calculated_signature = OpenSSL::HMAC.hexdigest('sha1', secret, body)
 
       # if the passed signature matches the calculated one including the prefix,
-      # then it's ok, if not, we render the forbidden status
+      # then it's ok, if not, the request should result in the forbidden status.
       forbidden! unless passed_signature == "#{prefix}#{calculated_signature}"
     end
   end

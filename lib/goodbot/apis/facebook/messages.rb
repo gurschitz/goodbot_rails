@@ -33,6 +33,7 @@ module Goodbot
             message: message
           }.to_json
 
+          puts json
           # For the sake of simplicity we just capture the RestClient::ExceptionWithResponse
           # which should catch any exception that might arise during the request
           begin
